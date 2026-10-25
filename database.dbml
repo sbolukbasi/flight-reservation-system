@@ -1,0 +1,73 @@
+Project FlightReservationSystem {
+  database_type: 'PostgreSQL'
+  Note: 'Flight Reservation System'
+}
+
+Table users {
+  id bigint [pk, increment]
+  email varchar(255) [not null, unique]
+  password_hash varchar(255) [not null]
+  role varchar(20) [not null, default: 'USER', check: `role IN ('USER', 'ADMIN')`]
+}
+
+Table passengers {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+}
+
+Table airports {
+  id bigint [pk, increment]
+  iata_code varchar(3) [unique, not null, check: `length(iata_code)=3`]
+  name varchar(100) [not null]
+  city varchar(100) [not null]
+  country varchar(100) [not null]
+}
+
+Table flights {
+  id bigint [pk, increment]
+  flight_number varchar(20) [not null]
+  departure_airport_id bigint [not null]
+  arrival_airport_id bigint [not null]
+  aircraft_model varchar(50) [not null]
+  departure_time timestamp [not null]
+  arrival_time timestamp [not null]
+  price decimal(10,2) [not null, check: `price >= 0`]
+
+  checks {
+    `departure_airport_id <> arrival_airport_id` [name: 'chk_flight_airports_different']
+
+    `arrival_time > departure_time` [name: 'chk_flight_arrival_after_departure']
+  }
+
+  indexes {
+    (flight_number, departure_time) [unique, name: 'unq_flight_number_departure_time']
+  }
+}
+
+Table flight_seats {
+  id bigint [pk, increment]
+  flight_id bigint [not null]
+  seat_number varchar(3) [not null]
+
+  indexes {
+    (flight_id, seat_number) [unique, name: 'unq_flight_seat_number']
+  }
+}
+
+Table bookings {
+  id bigint [pk, increment]
+  passenger_id bigint [not null]
+  flight_seat_id bigint [not null]
+  booked_price decimal(10,2) [not null, check: `booked_price >= 0`]
+  status varchar(20) [not null, default: 'CONFIRMED',check: `status IN ('CONFIRMED', 'CANCELLED', 'COMPLETED')`]
+  booking_time timestamp [not null, default: `now()`]
+}
+
+Ref: passengers.user_id > users.id
+Ref: flights.departure_airport_id > airports.id
+Ref: flights.arrival_airport_id > airports.id
+Ref: flight_seats.flight_id > flights.id
+Ref: bookings.passenger_id > passengers.id
+Ref: bookings.flight_seat_id > flight_seats.id
