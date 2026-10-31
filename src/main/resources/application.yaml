@@ -1,3 +1,19 @@
 spring:
   application:
     name: flight-reservation-system
+
+  flyway:
+    enabled: false
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/flight_reservation_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
